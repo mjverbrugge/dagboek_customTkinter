@@ -161,4 +161,4 @@ cython_debug/
 
 
 # Current project
-#dagboek.db
+diary.db
