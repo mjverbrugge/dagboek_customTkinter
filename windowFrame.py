@@ -6,6 +6,20 @@ The custom tkinter user window
 from tkinter import *
 import customtkinter
 import copiedCodeCustomTkinter as ccCTk
+from datetime import date
+
+
+
+##############################################################################
+#                               Frame functions                              #
+##############################################################################
+def getDate():
+    today = date.today()
+    d1 = today.strftime("%d - %m - %Y")
+    return d1
+##############################################################################
+#                                    MAIN                                    #
+##############################################################################
 
 # Initial system settings
 customtkinter.set_appearance_mode('dark')
