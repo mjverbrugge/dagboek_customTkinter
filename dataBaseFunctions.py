@@ -43,7 +43,6 @@ def deleteEntry(name):
     cur = con.cursor()
 
     # Delete data
-    print(name)
     cur.execute("DELETE FROM day WHERE date LIKE ?", (name,))
 
     # Commit and close

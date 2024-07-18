@@ -17,14 +17,12 @@ def newData():
     
     # Clear text sections
     updateTitle(today)
-    clearPageTextBox()
 
     # Check if today is already present
     allData = dBF.getEntries()
-    print (allData)
+
     for d in allData:
         if d[0] == today:
-            updateTitle(d[0])
             updatePageTextBox(d[1])
             break
     return
@@ -54,17 +52,46 @@ def updateTitle(name):
     entryTitle.configure(text=name)
     return
 
-def clearPageTextBox():
-    pageTextBox.delete('1.0', END)
-    return
-
 def updatePageTextBox(inputText):
+    pageTextBox.delete('1.0', END)
     pageTextBox.insert(END, text=inputText)
     return
 
-def filterdata():
-    allData = dBF.getEntries() 
+def filterdata(month='all', year='all'):
+    allData = dBF.getEntries()
+    copyDates = []
+
+    # Copy data and sort
+    for d in allData:
+        name = d[0]
+        d,m,y = d[0].split(' - ')
+        
+        newOrder = '%s%s%s'%(y,m,d)
+        copyDates.append((newOrder,name))
+    copyDates.sort()
+
+    # Update page list
+    updatePageList(copyDates)
     return
+
+def updatePageList(dates):
+    try: pageList.delete('all')
+    except: pass
+    for i, d in enumerate(dates):
+        pageList.insert(i, d[1])
+    return
+
+def openPage():
+    selectedDate = pageList.get()
+    allData = dBF.getEntries()
+    for d in allData:
+        if d[0] == selectedDate:
+            updateTitle(d[0])
+            updatePageTextBox(d[1])
+            break
+
+    return
+
 ##############################################################################
 #                                    MAIN                                    #
 ##############################################################################
@@ -136,7 +163,10 @@ filterFont = ("Times",20, 'bold')
 pageLabel = customtkinter.CTkLabel(overviewFrame, text='BLADZIJDEN', font=filterFont)
 pageLabel.grid(row=0, column=0, padx=5, pady=10, sticky='ew')
 pageList = ccCTk.CTkListbox(overviewFrame)
-pageList.grid(row=1, column=0, padx=10, pady=(0,10), sticky='nsew')
+pageList.grid(row=1, column=0, padx=10, pady=(0,5), sticky='nsew')
+
+filterButton = customtkinter.CTkButton(overviewFrame, text='OPEN', font=filterFont, command=openPage)
+filterButton.grid(row=2, column=0, padx=20, pady=(0,5))
 
 
 #
@@ -183,3 +213,8 @@ saveFrame.grid(row=2, column=0, padx=10, pady=(0,5), sticky='we')
 saveFrame.grid_columnconfigure(0, weight=1)
 saveButton = customtkinter.CTkButton(saveFrame, text='OPSLAAN', font=pageFont, height=40, command=saveData)
 saveButton.grid(row=0, column=0, sticky='we')
+
+#
+# First Entries
+#
+filterdata()
