@@ -2,8 +2,10 @@
 Main file to run the application
 """
 
-# Import
-from windowFrame import root
+# Database
+import createInitialDataBase as cIDB
+cIDB.validateDB()
 
-# main run
+# Main run
+from windowFrame import root
 root.mainloop()
