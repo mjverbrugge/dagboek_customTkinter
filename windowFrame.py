@@ -7,16 +7,133 @@ from tkinter import *
 import customtkinter
 import copiedCodeCustomTkinter as ccCTk
 from datetime import date
-
-
+import dataBaseFunctions as dBF
 
 ##############################################################################
 #                               Frame functions                              #
 ##############################################################################
+def newData():
+    today = getDate()
+    
+    # Clear text sections
+    updateTitle(today)
+
+    # Check if today is already present
+    allData = dBF.getEntries()
+
+    for d in allData:
+        if d[0] == today:
+            updatePageTextBox(d[1])
+            break
+    return
+
+def saveData():
+    # Get data
+    saveDate = entryTitle.cget('text')
+    saveText = pageTextBox.get("1.0",'end-1c')
+    allData = dBF.getEntries() 
+
+    # Check if date is already present
+    # If so, delete
+    for d in allData:
+        if saveDate == d[0]:
+            dBF.deleteEntry(saveDate)
+            break
+
+    dBF.savePage(saveDate, saveText)
+    filterdata()
+    setYearFilter()
+    return
+
 def getDate():
     today = date.today()
     d1 = today.strftime("%d - %m - %Y")
     return d1
+
+def updateTitle(name):
+    entryTitle.configure(text=name)
+    return
+
+def updatePageTextBox(inputText):
+    pageTextBox.delete('1.0', END)
+    pageTextBox.insert(END, text=inputText)
+    return
+
+def filterdata():
+    allData = dBF.getEntries()
+    copyDates = []
+    year = yearFilter.get()
+    month = monthFilter.get()
+
+    if year == 'all' and month == 'all':
+        for date in allData:
+            name = date[0]
+            d,m,y = date[0].split(' - ')
+            newOrder = '%s%s%s'%(y,m,d)
+            copyDates.append((newOrder,name))
+
+    elif year == 'all':
+        for date in allData:
+            name = date[0]
+            d,m,y = date[0].split(' - ')
+            if m == month:
+                newOrder = '%s%s%s'%(y,m,d)
+                copyDates.append((newOrder,name))
+
+    elif month == 'all':
+        for date in allData:
+            name = date[0]
+            d,m,y = date[0].split(' - ')
+            if y == year:
+                newOrder = '%s%s%s'%(y,m,d)
+                copyDates.append((newOrder,name))
+    else:
+        for date in allData:
+            name = date[0]
+            d,m,y = date[0].split(' - ')
+            if y == year and m == month:
+                newOrder = '%s%s%s'%(y,m,d)
+                copyDates.append((newOrder,name))
+
+
+    # Sort
+    copyDates.sort()
+
+    # Update page list
+    updatePageList(copyDates)
+    return
+
+def updatePageList(dates):
+    try: pageList.delete('all')
+    except: pass
+    for i, d in enumerate(dates):
+        pageList.insert(i, d[1])
+    return
+
+def openPage():
+    selectedDate = pageList.get()
+    allData = dBF.getEntries()
+    for d in allData:
+        if d[0] == selectedDate:
+            updateTitle(d[0])
+            updatePageTextBox(d[1])
+            break
+    return
+
+def setYearFilter():
+    allData = dBF.getEntries()
+    yearSet = set()
+    yearOptions = ['all']
+    for d in allData:
+        year = d[0].split(' - ')[-1]
+        yearSet.add(year)
+    
+    yearList = list(yearSet)
+    yearList.sort()
+    yearOptions.extend(yearList)
+    yearFilter.configure(values=yearOptions)
+    return
+
 ##############################################################################
 #                                    MAIN                                    #
 ##############################################################################
@@ -67,14 +184,15 @@ filterFont = ("Times",15, 'bold')
 firstPady = (20,10)
 yearLabel = customtkinter.CTkLabel(filterFrame, text='JAAR', font=filterFont)
 yearLabel.grid(row=0, column=0, padx=20, pady=firstPady)
-yearFilter = customtkinter.CTkOptionMenu(filterFrame)
+yearFilter = customtkinter.CTkOptionMenu(filterFrame, values=['all',])
 yearFilter.grid(row=0, column=1, pady=firstPady)
 monthLabel = customtkinter.CTkLabel(filterFrame, text='MAAND', font=filterFont)
 monthLabel.grid(row=1, column=0, padx=20)
-monthFilter = customtkinter.CTkOptionMenu(filterFrame)
+months = ['all','01','02','03','04','05','06','07','08','09','10','11','12']
+monthFilter = customtkinter.CTkOptionMenu(filterFrame, values=months)
 monthFilter.grid(row=1, column=1)
 
-filterButton = customtkinter.CTkButton(filterFrame, text='FILTER', font=filterFont)
+filterButton = customtkinter.CTkButton(filterFrame, text='FILTER', font=filterFont, command=filterdata)
 filterButton.grid(row=2, column=1, padx=20, pady=10)
 
 # Page overview
@@ -88,7 +206,10 @@ filterFont = ("Times",20, 'bold')
 pageLabel = customtkinter.CTkLabel(overviewFrame, text='BLADZIJDEN', font=filterFont)
 pageLabel.grid(row=0, column=0, padx=5, pady=10, sticky='ew')
 pageList = ccCTk.CTkListbox(overviewFrame)
-pageList.grid(row=1, column=0, padx=10, pady=(0,10), sticky='nsew')
+pageList.grid(row=1, column=0, padx=10, pady=(0,5), sticky='nsew')
+
+filterButton = customtkinter.CTkButton(overviewFrame, text='OPEN', font=filterFont, command=openPage)
+filterButton.grid(row=2, column=0, padx=20, pady=(0,5))
 
 
 #
@@ -117,7 +238,7 @@ pageFont = ("Times",20, 'bold')
 entryTitle = customtkinter.CTkLabel(pageTitleFrame, text='DATUM', font=pageTitleFont, text_color='grey')
 entryTitle.grid(row=0, column=0, pady=25, sticky='we')
 # Button
-filterButton = customtkinter.CTkButton(pageTitleFrame, text='NIEUW', font=pageFont, height=50)
+filterButton = customtkinter.CTkButton(pageTitleFrame, text='NIEUW', font=pageFont, height=50, command=newData)
 filterButton.grid(row=0, column=1, padx=20)
 
 # Visualize page Frame
@@ -133,5 +254,11 @@ pageTextBox.grid(row=0, column=0, sticky='nswe')
 saveFrame = customtkinter.CTkFrame(pageFrame, height=50)
 saveFrame.grid(row=2, column=0, padx=10, pady=(0,5), sticky='we')
 saveFrame.grid_columnconfigure(0, weight=1)
-saveButton = customtkinter.CTkButton(saveFrame, text='OPSLAAN', font=pageFont, height=40)
+saveButton = customtkinter.CTkButton(saveFrame, text='OPSLAAN', font=pageFont, height=40, command=saveData)
 saveButton.grid(row=0, column=0, sticky='we')
+
+#
+# Initialize user entry boxes
+#
+filterdata()
+setYearFilter()
