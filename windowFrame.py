@@ -41,6 +41,8 @@ def saveData():
             break
 
     dBF.savePage(saveDate, saveText)
+    filterdata()
+    setYearFilter()
     return
 
 def getDate():
@@ -57,17 +59,44 @@ def updatePageTextBox(inputText):
     pageTextBox.insert(END, text=inputText)
     return
 
-def filterdata(month='all', year='all'):
+def filterdata():
     allData = dBF.getEntries()
     copyDates = []
+    year = yearFilter.get()
+    month = monthFilter.get()
 
-    # Copy data and sort
-    for d in allData:
-        name = d[0]
-        d,m,y = d[0].split(' - ')
-        
-        newOrder = '%s%s%s'%(y,m,d)
-        copyDates.append((newOrder,name))
+    if year == 'all' and month == 'all':
+        for date in allData:
+            name = date[0]
+            d,m,y = date[0].split(' - ')
+            newOrder = '%s%s%s'%(y,m,d)
+            copyDates.append((newOrder,name))
+
+    elif year == 'all':
+        for date in allData:
+            name = date[0]
+            d,m,y = date[0].split(' - ')
+            if m == month:
+                newOrder = '%s%s%s'%(y,m,d)
+                copyDates.append((newOrder,name))
+
+    elif month == 'all':
+        for date in allData:
+            name = date[0]
+            d,m,y = date[0].split(' - ')
+            if y == year:
+                newOrder = '%s%s%s'%(y,m,d)
+                copyDates.append((newOrder,name))
+    else:
+        for date in allData:
+            name = date[0]
+            d,m,y = date[0].split(' - ')
+            if y == year and m == month:
+                newOrder = '%s%s%s'%(y,m,d)
+                copyDates.append((newOrder,name))
+
+
+    # Sort
     copyDates.sort()
 
     # Update page list
@@ -89,7 +118,20 @@ def openPage():
             updateTitle(d[0])
             updatePageTextBox(d[1])
             break
+    return
 
+def setYearFilter():
+    allData = dBF.getEntries()
+    yearSet = set()
+    yearOptions = ['all']
+    for d in allData:
+        year = d[0].split(' - ')[-1]
+        yearSet.add(year)
+    
+    yearList = list(yearSet)
+    yearList.sort()
+    yearOptions.extend(yearList)
+    yearFilter.configure(values=yearOptions)
     return
 
 ##############################################################################
@@ -142,11 +184,12 @@ filterFont = ("Times",15, 'bold')
 firstPady = (20,10)
 yearLabel = customtkinter.CTkLabel(filterFrame, text='JAAR', font=filterFont)
 yearLabel.grid(row=0, column=0, padx=20, pady=firstPady)
-yearFilter = customtkinter.CTkOptionMenu(filterFrame)
+yearFilter = customtkinter.CTkOptionMenu(filterFrame, values=['all',])
 yearFilter.grid(row=0, column=1, pady=firstPady)
 monthLabel = customtkinter.CTkLabel(filterFrame, text='MAAND', font=filterFont)
 monthLabel.grid(row=1, column=0, padx=20)
-monthFilter = customtkinter.CTkOptionMenu(filterFrame)
+months = ['all','01','02','03','04','05','06','07','08','09','10','11','12']
+monthFilter = customtkinter.CTkOptionMenu(filterFrame, values=months)
 monthFilter.grid(row=1, column=1)
 
 filterButton = customtkinter.CTkButton(filterFrame, text='FILTER', font=filterFont, command=filterdata)
@@ -215,6 +258,7 @@ saveButton = customtkinter.CTkButton(saveFrame, text='OPSLAAN', font=pageFont, h
 saveButton.grid(row=0, column=0, sticky='we')
 
 #
-# First Entries
+# Initialize user entry boxes
 #
 filterdata()
+setYearFilter()

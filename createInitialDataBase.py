@@ -1,5 +1,5 @@
 """
-Create a new dictionary frame
+Create a new database and tables
 """
 import os
 import sqlite3
@@ -20,7 +20,7 @@ con.commit()
 con.close()
 
 
-
+"""
 def addTestData():
     # Connect to table
     con = sqlite3.connect("diary.db")
@@ -40,4 +40,5 @@ def addTestData():
     con.commit()
     con.close()
 
-addTestData()
+#addTestData()
+"""
