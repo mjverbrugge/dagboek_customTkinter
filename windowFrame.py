@@ -7,16 +7,64 @@ from tkinter import *
 import customtkinter
 import copiedCodeCustomTkinter as ccCTk
 from datetime import date
-
-
+import dataBaseFunctions as dBF
 
 ##############################################################################
 #                               Frame functions                              #
 ##############################################################################
+def newData():
+    today = getDate()
+    
+    # Clear text sections
+    updateTitle(today)
+    clearPageTextBox()
+
+    # Check if today is already present
+    allData = dBF.getEntries()
+    print (allData)
+    for d in allData:
+        if d[0] == today:
+            updateTitle(d[0])
+            updatePageTextBox(d[1])
+            break
+    return
+
+def saveData():
+    # Get data
+    saveDate = entryTitle.cget('text')
+    saveText = pageTextBox.get("1.0",'end-1c')
+    allData = dBF.getEntries() 
+
+    # Check if date is already present
+    # If so, delete
+    for d in allData:
+        if saveDate == d[0]:
+            dBF.deleteEntry(saveDate)
+            break
+
+    dBF.savePage(saveDate, saveText)
+    return
+
 def getDate():
     today = date.today()
     d1 = today.strftime("%d - %m - %Y")
     return d1
+
+def updateTitle(name):
+    entryTitle.configure(text=name)
+    return
+
+def clearPageTextBox():
+    pageTextBox.delete('1.0', END)
+    return
+
+def updatePageTextBox(inputText):
+    pageTextBox.insert(END, text=inputText)
+    return
+
+def filterdata():
+    allData = dBF.getEntries() 
+    return
 ##############################################################################
 #                                    MAIN                                    #
 ##############################################################################
@@ -74,7 +122,7 @@ monthLabel.grid(row=1, column=0, padx=20)
 monthFilter = customtkinter.CTkOptionMenu(filterFrame)
 monthFilter.grid(row=1, column=1)
 
-filterButton = customtkinter.CTkButton(filterFrame, text='FILTER', font=filterFont)
+filterButton = customtkinter.CTkButton(filterFrame, text='FILTER', font=filterFont, command=filterdata)
 filterButton.grid(row=2, column=1, padx=20, pady=10)
 
 # Page overview
@@ -117,7 +165,7 @@ pageFont = ("Times",20, 'bold')
 entryTitle = customtkinter.CTkLabel(pageTitleFrame, text='DATUM', font=pageTitleFont, text_color='grey')
 entryTitle.grid(row=0, column=0, pady=25, sticky='we')
 # Button
-filterButton = customtkinter.CTkButton(pageTitleFrame, text='NIEUW', font=pageFont, height=50)
+filterButton = customtkinter.CTkButton(pageTitleFrame, text='NIEUW', font=pageFont, height=50, command=newData)
 filterButton.grid(row=0, column=1, padx=20)
 
 # Visualize page Frame
@@ -133,5 +181,5 @@ pageTextBox.grid(row=0, column=0, sticky='nswe')
 saveFrame = customtkinter.CTkFrame(pageFrame, height=50)
 saveFrame.grid(row=2, column=0, padx=10, pady=(0,5), sticky='we')
 saveFrame.grid_columnconfigure(0, weight=1)
-saveButton = customtkinter.CTkButton(saveFrame, text='OPSLAAN', font=pageFont, height=40)
+saveButton = customtkinter.CTkButton(saveFrame, text='OPSLAAN', font=pageFont, height=40, command=saveData)
 saveButton.grid(row=0, column=0, sticky='we')
